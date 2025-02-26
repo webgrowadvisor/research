@@ -1,0 +1,87 @@
+
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
+use Auth;
+use DB;
+
+public function capture()
+    {
+        $timestamp = Carbon::now()->format('Y-m-d_H-i-s');
+        $filename = storage_path("app/public/screenshots/screenshot_{$timestamp}.png");
+
+        // Windows PowerShell command to take a screenshot
+        $powershellCommand = "Add-Type -AssemblyName System.Windows.Forms; " .
+            "\$screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds; " .
+            "\$bitmap = New-Object System.Drawing.Bitmap \$screen.Width, \$screen.Height; " .
+            "\$graphics = [System.Drawing.Graphics]::FromImage(\$bitmap); " .
+            "\$graphics.CopyFromScreen(\$screen.Location, [System.Drawing.Point]::Empty, \$screen.Size); " .
+            "\$bitmap.Save('$filename', [System.Drawing.Imaging.ImageFormat]::Png);";
+
+        shell_exec("powershell -Command \"$powershellCommand\"");
+
+        // Insert into database only if screenshot is saved
+        if (file_exists($filename)) {
+            DB::table('screentshots')->insert([
+                'employe_id'  => Auth::guard('employee')->user()->Id ?? 0,
+                'screentshot' => "screenshot_{$timestamp}.png"
+            ]);
+            
+            return response()->json(['status' => 'success', 'message' => 'Screenshot saved']);
+        }
+
+        return response()->json(['status' => 'error', 'message' => 'Screenshot failed'], 500);
+    }
+
+
+
+<script>
+        setInterval(() => {
+            console.log("Attempting to take screenshot...");
+
+            fetch('{{route('employee.take-screenshot')}}')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => console.log("✅ Screenshot Taken:", data))
+            .catch(error => console.error("❌ Error:", error))
+        }, 2000);
+    </script>
+
+
+next way is
+
+<script>
+        function takeScreenshot() {
+            fetch('{{ route('employee.take-screenshot') }}')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => console.log("✅ Screenshot Taken:", data))
+                .catch(error => console.error("❌ Error:", error))
+                .finally(() => {
+                    // Call the function again after 5 minutes (300,000 ms)
+                    // setTimeout(takeScreenshot, 300000);
+                    let now = new Date();
+                    let nextRunTime = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes later
+
+                    // Calculate the delay in milliseconds until the next run
+                    let delay = nextRunTime.getTime() - now.getTime();
+
+                    // Set the timeout for the next function call
+                    setTimeout(takeScreenshot, delay);
+                });
+        }
+        if (!localStorage.getItem('screenshotStarted')) {
+            // Mark that the function has been triggered
+            localStorage.setItem('screenshotStarted', 'true');
+            
+            // Start the screenshot function immediately
+            takeScreenshot();
+        }
+    </script>
