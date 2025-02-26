@@ -1,0 +1,22 @@
+<select class="form-select js-select2" name="Project[]" onchange="getProjectMembers(this.value)" >
+    <option value="">Select Project</option>
+     @foreach($projects as $project)
+        <option value="{{$project->id}}">{{$project->name}}</option>
+     @endforeach
+</select>
+
+
+<select class="form-select js-select2 AssignedMembers" name="Members[]" multiple>
+   <option value="">Assign To</option>                        
+</select>
+
+
+function getProjectMembers(ProjectId){        
+  var URL =@json(route('admin.getprojectmembers'));       
+  $.get(URL,{             
+    project : ProjectId        
+  },
+  function(data){             
+    $('.AssignedMembers').html(data);        
+  });   
+}
