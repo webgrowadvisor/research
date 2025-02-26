@@ -1,0 +1,85 @@
+<li><a data-bs-toggle="modal" data-bs-id="{{$item->id}}" href="#taskinfo"><em class="icon ni ni-archive"></em><span>Task Information</span></a></li>
+
+<li><a data-bs-toggle="modal" data-history-id="{{$item->id}}" href="#taskinfo"><em class="icon ni ni-book"></em><span>Task History</span></a></li>
+
+<li><a data-bs-toggle="modal" data-comment-id="{{$item->id}}" href="#taskinfo"><em class="icon ni ni-comments"></em><span>Task Comments</span></a></li>
+
+ <li><a data-bs-toggle="modal" data-email-id="{{$item->id}}" href="#taskinfo"><em class="icon ni ni-comments"></em><span>Send Email To Client</span></a></li>
+
+
+Route::get('/task-mail-send/{id}','TaskController@Project_mail_send')->name('task.mail.send');
+ Route::post('/task-mail-send','TaskController@Project_mail_sended')->name('mail.send.task');
+
+
+
+public function Project_mail_send($id){
+        
+        $LoginId = admininfo()->id;               
+        $task= \App\Models\Task::where('id',$id)->first();
+
+        return view('admin.task.task-mail',compact('task','LoginId'));
+        
+}
+
+
+<div class="card" id="" style="border-radius: 15px;">
+    
+    <div class="card-footer p-0" style="background:none">
+        <form class="form-outline" method="POST" action="{{route('admin.mail.send.task')}}">
+          @csrf
+          <input type="hidden" name="task_id" value="{{$task->id}}">
+          <textarea class="form-control" required id="textAreaExample" name="message" rows="3"></textarea>
+          <label class="form-label" for="textAreaExample">Type your mail message</label>
+          <button class="form-label text-right float-end">Send</button>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal fade zoom" tabindex="-1" id="taskinfo">    
+  <div class="modal-dialog" role="document">        
+    <div class="modal-content">            
+      <div class="modal-header">                
+        <h5 class="modal-title">Task Information</h5>                
+        <a href="#" class="close" data-bs-dismiss="modal" aria-label="Close"><em class="icon ni ni-cross"></em></a>           
+      </div>            
+        <div class="modal-body informationbox">                
+    <div class="text-center">  <div class="spinner-border" role="status">  
+    <span class="visually-hidden">Loading...</span>  </div>
+    </div>            
+  </div>          
+<!--<div class="modal-footer bg-light" data-bs-dismiss="modal" aria-label="Close"><span class="sub-text">Close</span></div>-->        
+</div>    
+</div>
+</div>
+
+
+
+
+
+$('[data-bs-id]').on('click',function(){
+        let Task = $(this).attr('data-bs-id');
+        $('.informationbox').html('<div class="text-center">  <div class="spinner-border" role="status">    <span class="visually-hidden">Loading...</span>  </div></div>');
+        $('.informationbox').load("{{url('admin/task-detail')}}/"+Task);
+        $('.modal-title').text('Task Information');
+    });
+
+
+$('[data-history-id]').on('click',function(){        let Task = $(this).attr('data-history-id');        $('.informationbox').html('<div class="text-center">  <div class="spinner-border" role="status">    <span class="visually-hidden">Loading...</span>  </div></div>');        $('.informationbox').load("{{url('admin/task-history')}}/"+Task);        $('.modal-title').text('Task History');    });
+
+
+$('[data-comment-id]').on('click',function(){        let Task = $(this).attr('data-comment-id');        $('.informationbox').html('<div class="text-center">  <div class="spinner-border" role="status">    <span class="visually-hidden">Loading...</span>  </div></div>');        $('.informationbox').load("{{url('admin/task-updates')}}/"+Task);        $('.modal-title').text('Task Comments');    });  
+
+$('[data-email-id]').on('click',function(){
+        let Task = $(this).attr('data-email-id');
+        $('.informationbox').html('<div class="text-center">  <div class="spinner-border" role="status">    <span class="visually-hidden">Loading...</span>  </div></div>');
+        $('.informationbox').load("{{url('admin/task-mail-send')}}/"+Task);
+        $('.modal-title').text('Mail Send');
+    });
+
+
+$('.addtaskmodal').on('click',function(){        let Html ='';        Html +='<ul class="preview-list center g-1">';               Html +='<li class="preview-item">';                          Html +='<div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">';                    Html +='<span class="visually-hidden">Loading...</span> ';                         Html +='</div>   ';               Html +='</li>  ';           Html +='</ul>';        $('.addtaskbox').html(Html);        $('.addtaskbox').load(@json(route('admin.newtask')));    });    function editData(Id){        let Html ='';        Html +='<ul class="preview-list center g-1">';               Html +='<li class="preview-item">';                          Html +='<div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">';                    Html +='<span class="visually-hidden">Loading...</span> ';                         Html +='</div>   ';               Html +='</li>  ';           Html +='</ul>';        $('.edittaskbox').html(Html);        $('.edittaskbox').load(@json(url('admin/update-task'))+'/'+Id);    }       $('.taskremove').on('click',function(e){        $('.tblfrm').removeAttr('action','#');        $('.tblfrm').attr('action',@json(route('admin.bulktaskremove')));        $('.tblfrm').submit();    }); 
+
+
+
+
