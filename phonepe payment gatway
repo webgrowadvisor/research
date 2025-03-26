@@ -1,0 +1,74 @@
+$result = mysqli_query($db, $query);
+
+
+if ($result) {
+            $order_id = mysqli_insert_id($db);
+            if ($payment_method == 'pay_now') { 
+                // Initialize PhonePe Payment Gateway
+                try {
+                    $merchantKey = 'kjfdfjkdjkda89d-dfjdjkjk';
+                    $transactionId = uniqid('TXL', true);
+                    $payrate = $offer_rate * 100; // Convert to paise
+                    
+                    $arrayVar = [
+                        "merchantId" => "mkdmfkdiejrkjkdf",
+                        "merchantTransactionId" => $transactionId,
+                        "merchantUserId" => $user_id,
+                        "amount" => $payrate,
+                        "redirectUrl" => "thanks.php?payment_request_id=$order_id&transaction_id=$transactionId&ord_payment_gateway=PhonePe",
+                        "redirectMode" => "REDIRECT",
+                        "callbackUrl" => "webhook.php",
+                        "mobileNumber" => '7896541230', // phone number
+                        "paymentInstrument" => ["type" => "PAY_PAGE"],
+                    ];
+    
+                    $jsonPayload = json_encode($arrayVar);
+                    $base64EncodedPayload = base64_encode($jsonPayload);
+                    $Checksum = hash('sha256', $base64EncodedPayload . "/pg/v1/pay" . $merchantKey) . '###1';
+    
+                    $url = "https://api.phonepe.com/apis/hermes/pg/v1/pay";
+                    $headers = [
+                        "Content-Type: application/json",
+                        "X-VERIFY: " . $Checksum,
+                        "accept: application/json"
+                    ];
+    
+                    $data = json_encode(["request" => $base64EncodedPayload]);
+    
+                    $ch = curl_init();
+                    curl_setopt($ch, CURLOPT_URL, $url);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                    curl_setopt($ch, CURLOPT_POST, 1);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                    $response = curl_exec($ch);
+    
+                    if (curl_errno($ch)) {
+                        throw new Exception('Curl error: ' . curl_error($ch));
+                    }
+    
+                    curl_close($ch);
+                    $responseData = json_decode($response, true);
+    
+                    if (isset($responseData['success']) && $responseData['success'] == 1) {
+                        $paymentUrl = $responseData['data']['instrumentResponse']['redirectInfo']['url'];
+    
+                        header("Location: $paymentUrl");
+                        exit;
+                    } else {
+                        header("Location: failure.php");
+                        exit;
+                    }
+                } catch (Exception $e) {
+                    echo 'Error: ' . $e->getMessage();
+                }
+            } else {
+                // For COD (Cash on Delivery) or Pay Later
+                echo "<script>
+                    window.alert('Order placed successfully! We will contact you soon.');
+                    window.location.href = 'http://demo.com/thanks.php?payment_request_id=$order_id&payment_method=cod';
+                    </script>";
+            }
+        } else {
+            echo "Error in processing your request. Please try again later.";
+        }
