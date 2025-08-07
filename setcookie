@@ -1,0 +1,63 @@
+Agar function call krna ho to check this and use cookie time set function
+
+<script>
+    // ✅ Cookie functions
+    function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            let date = new Date();
+            date.setTime(date.getTime() + (days*24*60*60*1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+    }
+
+    function getCookie(name) {
+        let nameEQ = name + "=";
+        let ca = document.cookie.split(';');
+        for(let i=0;i < ca.length;i++) {
+            let c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+    }
+
+    // To open modal
+    function openModal() {
+        document.getElementById('visitorModal').style.display = 'flex';
+    }
+
+    // To close modal if needed
+    function closeModal() {
+        document.getElementById('visitorModal').style.display = 'none';
+        
+        // ⏱️ 5 मिनट के लिए cookie set (1 दिन = 1440 मिनट, तो 5 मिनट = 5/1440 दिन)
+        setCookie('hideVisitorModal', true, (5 / 1440));
+    }
+
+    // openModal();
+    if (!getCookie('hideVisitorModal')) {
+        openModal();
+    }
+</script>
+
+
+form submit hone ke baad 1 din ke liye close and time set in cookie
+
+$('.submit-btn').text('Send Message');
+                    if (response.success) {
+                        $('#form-msg').html('<span class="text-success">' + response.message + '</span>');
+                        $('#inquiryForm')[0].reset();
+                        $('#visitorModal').fadeOut(3000);
+                        
+                        // ✅ Cookie set kare yaha (1 din ke liye)
+                        setCookie('hideVisitorModal', true, 1);
+                        
+                    } else {
+                        $('#form-msg').html('<span class="text-danger">' + response.error + '</span>');
+                    }
+
+
+
+
