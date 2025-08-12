@@ -1,0 +1,28 @@
+Full Flow Example
+
+git init                                # अगर repo local में नया है
+git add .                               # सभी files add
+git commit -m "first commit"            # commit message
+git branch -M main                      # branch को main नाम देना
+git remote add origin https://github.com/username/repo.git
+git push -u origin main                 # first push with branch set
+
+git push origin main --force
+
+
+# Git clone make 
+git clone https://github.com/username/repo.git
+
+# Next Steps After Clone
+cd mytest             # Clone किए गए folder में जाएं
+git status            # Repo की current स्थिति देखें
+git branch            # Current branch देखें
+
+
+
+1️⃣ Merge the Whole Branch
+# Switch to your target branch (where you want changes)
+git checkout main
+
+# Merge the other branch into it
+git merge feature-branch
