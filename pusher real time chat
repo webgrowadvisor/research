@@ -1,0 +1,179 @@
+// Front code for msg send and reading typing and online/offline user logic
+
+  useEffect(() => {
+      if (!senderId || !receiverId) return;
+  
+      const channel = pusherClient.subscribe(`chat-${senderId}`); // chanle name should be important for event get
+  
+      channel.bind("new-message", (data) => {
+        setMessages((prev) => [...prev, data]);
+      });
+
+      channel.bind("typing", (data) => {
+        if (data.typing) {
+          setIsTyping(true);
+        } else {
+          setIsTyping(false);
+        }
+      });
+
+      channel.bind("messages-read", () => {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.sender === senderId ? { ...msg, read: true } : msg
+          )
+        );
+      });
+
+      channel.bind("user-status", (data) => {
+        if (data.userId == receiverId) {
+          setIsOnline(data.status == "online");
+        }
+      });
+  
+      return () => {
+        channel.unbind("user-status");
+        channel.unbind("new-message");
+        channel.unbind("messages-read");
+        channel.unbind("typing");
+        pusherClient.unsubscribe(`chat-${senderId}`);
+      };
+  }, [senderId]);
+
+  fetch("/api/chat/pusher", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(messageData),
+      });
+
+  const sendOnlineStatus = () => {
+
+    fetch("/api/chat/online", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: senderId,
+          receiver: receiverId,
+          status: "online",
+        }),
+      });
+
+      window.addEventListener("mousemove", sendOnlineStatus);
+  };
+
+  const handleTyping = () => {
+    fetch("/api/chat/typing", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sender: senderId,
+        receiver: receiverId,
+        typing: true,
+      }),
+    });
+  };
+
+  const handleUserActivity = () => {      
+
+      fetch("/api/chat/read", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reader: senderId,
+          sender: receiverId,
+        }),
+      });
+
+  };
+
+window.addEventListener("keydown", handleUserActivity);
+
+// backent pusher api code how to work pusher code and api
+/--------------------------------------------------------------------/
+import Pusher from "pusher";
+
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER,
+  useTLS: true
+});
+
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    // this chat-receiver chanal name is important
+    await pusher.trigger(`chat-${body.receiver}`, "new-message", {
+      text: body.text,
+      sender: body.sender,
+      receiver: body.receiver,
+      image: body.image,
+      createdAt: body.createdAt,
+    });
+
+    return Response.json({ success: true });
+  } catch (err) {
+    console.log("🔥 PUSHER ERROR:", err);
+    return Response.json({ error: "Pusher failed" }, { status: 500 });
+  }
+}
+
+-------------------------------------------
+import Pusher from "pusher";
+
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER,
+  useTLS: true
+});
+
+export async function POST(req) {
+  const body = await req.json();
+
+  await pusher.trigger(`chat-${body.receiver}`, "typing", {
+    sender: body.sender,
+    typing: body.typing, // true or false
+  });
+
+  return Response.json({ success: true });
+}
+
+---------------------------------------
+
+import Pusher from "pusher";
+
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER,
+  useTLS: true,
+});
+
+export async function POST(req) {
+  try {
+    const body = await req.json(); // FIX 1
+    const { userId, status, receiver } = body;
+
+    await pusher.trigger(`chat-${receiver}`, "user-status", {
+      userId,
+      status,
+    }); // FIX 2
+
+    return Response.json({ success: true, userId: userId, status: status });
+    // return Response.json({ success: true });
+  } catch (error) {
+    console.log("PUSHER STATUS ERROR:", error);
+    return Response.json({ error: "Failed" }, { status: 500 });
+  }
+}
+
+  
+
