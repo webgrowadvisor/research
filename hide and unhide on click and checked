@@ -1,0 +1,44 @@
+// this is html view
+
+<div>
+    <label class="dp-check">
+        <input type="checkbox" id="fundCheckbox" checked />
+        <span class="checkmark"></span>
+        <div class="dp-con">
+            <div class="icon"><i class="fas fa-wallet"></i></div>
+            <div class="text">
+                <h4>Personal savings / investments / RRSP / inheritance / settlement</h4>
+                <p>Funds you've accumulated over time</p>
+            </div>
+        </div>
+    </label>
+
+    <div class="pl-5 mb-4" id="amountBox">
+        <p class="mb-2 p-label">Amount from this source *</p>
+        <input class="w-50" type="text" id="payInput" placeholder="$ 50,000">
+    </div>
+</div>
+
+/// this is jquery and js looking print
+
+<script>
+    const checkbox = document.getElementById("fundCheckbox");
+    const amountBox = document.getElementById("amountBox");
+    const payInput = document.getElementById("payInput");
+
+    function toggleAmountBox() {
+        if (checkbox.checked) {
+            amountBox.style.display = "block";
+            payInput.setAttribute("name", "pay");
+        } else {
+            amountBox.style.display = "none";
+            payInput.removeAttribute("name");
+        }
+    }
+
+    // Run on page load
+    toggleAmountBox();
+
+    // Run on change
+    checkbox.addEventListener("change", toggleAmountBox);
+</script>
