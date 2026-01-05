@@ -1,0 +1,162 @@
+<?php
+session_start(); // Ensure session is started
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+   <?php include('include/header.php'); ?>
+    <body class="sb-nav-fixed">
+      <?php include('include/nav.php'); ?>
+        <div id="layoutSidenav">
+            <?php include('include/sidebar.php'); ?>
+            <div id="layoutSidenav_content">
+                 <?php if (!empty($success_message)): ?>
+                        <div class="alert alert-success" role="alert">
+                            <?php echo htmlspecialchars($success_message); ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($error_message)): ?>
+                        <div class="alert alert-danger" role="alert">
+                            <?php echo htmlspecialchars($error_message); ?>
+                        </div>
+                    <?php endif; ?>
+                <main>
+                    <div class="container-fluid px-4">
+                        <h1 class="mt-4">Add RIA</h1>
+                        <ol class="breadcrumb mb-4">
+                            <li class="breadcrumb-item active">RIA Form</li>
+                        </ol>
+                       
+
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Responsible</th>
+                                    <th>Managed By</th>
+                                    <th>Experience</th>
+                                    <th>Description</th>
+                                    <!-- <th>Strategies</th> -->
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($records as $record): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($record['RIA_id']); ?></td>
+                                        <td><?php echo htmlspecialchars($record['responsible']); ?></td>
+                                        <td><?php echo htmlspecialchars($record['managed_by']); ?></td>
+                                        <td><?php echo htmlspecialchars($record['experience']); ?></td>
+                                        <td><?php echo htmlspecialchars($record['description']); ?></td>
+                                        <!-- <td><?php echo htmlspecialchars($record['strategies_ids']); ?></td> -->
+                                        <td>
+                                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#editModal" data-id="<?php echo htmlspecialchars($record['RIA_id']); ?>" data-responsible="<?php echo htmlspecialchars($record['responsible']); ?>" data-managed_by="<?php echo htmlspecialchars($record['managed_by']); ?>" data-experience="<?php echo htmlspecialchars($record['experience']); ?>" data-description="<?php echo htmlspecialchars($record['description']); ?>">
+                                                Edit
+                                            </button>
+                                            <a href="aboutyou_delete.php?id=<?php echo htmlspecialchars($record['RIA_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this record?');">Delete</a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </main>
+                <footer class="py-4 bg-light mt-auto">
+                    <div class="container-fluid px-4">
+                        <div class="d-flex align-items-center justify-content-between small">
+                            <div class="text-muted">Copyright &copy; Your Website 2023</div>
+                            <div>
+                                <a href="#">Privacy Policy</a>
+                                &middot;
+                                <a href="#">Terms &amp; Conditions</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+       <?php include('include/footer.php'); ?>
+    </body>
+</html>
+
+<!-- Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Edit RIA</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm" action="aboutyou_save.php" method="POST">
+                    <input type="hidden" id="recordId" name="id" value="">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="modalResponsible" class="form-label">Responsible</label>
+                            <input type="text" class="form-control" id="modalResponsible" name="responsible" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="modalManagedBy" class="form-label">Managed By (Name)</label>
+                            <input type="text" class="form-control" id="modalManagedBy" name="managed_by" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="modalExperience" class="form-label">Total Experience</label>
+                            <input type="text" class="form-control" id="modalExperience" name="experience" required>
+                        </div>
+                        <!-- <div class="col-md-6">
+                            <label for="modalStrategy" class="form-label">Select Strategies</label>
+                            <div class="form-check">
+                                <?php foreach ($readArr as $value) { ?>
+                                    <input class="form-check-input" type="checkbox" id="modalStrategy_<?= $value['strategy_name'] ?>" name="strategies[]" value="<?= $value['id'] ?>" <?php checkStr($conn,$value['id'],$ria_id) ?>>
+                                    <label class="form-check-label" for="modalStrategy_<?= $value['strategy_name'] ?>">
+                                        <?= $value['strategy_name'] ?>
+                                    </label><br>
+                                <?php } ?>
+                            </div>
+                        </div> -->
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="modalDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="modalDescription" name="description" rows="4" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+   
+    $('#editModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); 
+        var id = button.data('id'); 
+        var responsible = button.data('responsible');
+        var managed_by = button.data('managed_by');
+        var experience = button.data('experience');
+        var description = button.data('description');
+        // var strategies = button.data('strategies').split(','); 
+
+        var modal = $(this);
+        modal.find('#recordId').val(id);
+        modal.find('#modalResponsible').val(responsible);
+        modal.find('#modalManagedBy').val(managed_by);
+        modal.find('#modalExperience').val(experience);
+        modal.find('#modalDescription').val(description);
+
+        // Set checkboxes based on strategies
+        // modal.find('input[name="strategies[]"]').each(function() {
+        //     $(this).prop('checked', strategies.includes($(this).val()));
+        // });
+    });
+</script>
