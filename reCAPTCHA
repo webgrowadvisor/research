@@ -1,0 +1,38 @@
+
+<!DOCTYPE html>
+
+<head>
+
+    <?php require 'includes/top-header.php'; ?>
+
+    <script src="https://www.google.com/recaptcha/api.js?render=6LdVS0EaEntailtiondaDRDRt_MDFJJIKDR"></script>
+
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script>
+      function enableBtn(){        
+        document.getElementById('submitBtn').disabled = false;
+      }
+    </script>
+    <style type="text/css">
+        span.error{
+            color: red;
+        }
+    </style>
+
+</head>
+
+
+<!-- form start -->
+  <form method="post" action="inc/inquiry.inc.php" id="form-inquiry">
+
+   <div class="grid grid_12 percentage" style="margin-top: 20px;">
+       <div class="g-recaptcha" data-sitekey="685556dfjd;dlfdl-dfadsffdf" data-callback="enableBtn" ></div>
+   </div>
+
+<div class="grid grid_12 percentage ">
+   <div class="nicdark_focus nicdark_sizing nicdark_padding10" style="display:none;" id="fromBtn" >
+      <input type="submit" value="SEND MESSAGE" name="submit-inquiry" disabled="disabled" id="submitBtn" class="nicdark_btn nicdark_bg_green fullwidth right big white">
+   </div>
+</div>
+
+</form>
