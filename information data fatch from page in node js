@@ -1,0 +1,147 @@
+// profile_urls.json file data in array 
+
+[
+  "https://www.petermdportal.com/provider/patients/profile/39761",
+  "https://www.petermdportal.com/provider/patients/profile/39226",
+  "https://www.petermdportal.com/provider/patients/profile/39564"
+]
+
+
+-------------------code work in node js --------------------------------------------------------
+
+import puppeteer from "puppeteer";
+import fs from "fs";
+
+// Load URLs and remove duplicates
+const urls = JSON.parse(fs.readFileSync("./profile_urls.json", "utf8"));
+const uniqueUrls = [...new Set(urls)];
+
+const browser = await puppeteer.launch({
+  headless: false,
+  defaultViewport: null
+});
+
+const page = await browser.newPage();
+page.setDefaultTimeout(60000);
+
+// --------------------
+// LOGIN
+// --------------------
+await page.goto("https://www.petermdportal.com/provider/login", {
+  waitUntil: "domcontentloaded"
+});
+
+await page.type("input[name=email]", "dranooshboz@gmail.com");
+await page.type("input[name=password]", "Anoosh1234@");
+await page.click("button[type=submit]");
+
+// --------------------
+// WAIT FOR OTP PAGE
+// --------------------
+await page.waitForSelector("input[name=code]", { timeout: 60000 });
+console.log("OTP page loaded. Enter OTP in the browser now.");
+
+// Wait until user enters OTP manually
+await page.waitForFunction(() => {
+  const input = document.querySelector("input[name=code]");
+  return input && input.value.trim().length > 0;
+}, { timeout: 0 }); // wait forever until OTP entered
+
+// Submit OTP
+await page.click("button[type=submit]");
+
+// --------------------
+// WAIT UNTIL LOGIN SUCCESS
+// --------------------
+await page.waitForNavigation({ waitUntil: "domcontentloaded" });
+console.log("Logged in successfully");
+
+// --------------------
+// LOOP THROUGH URLS
+// --------------------
+const result = [];
+
+for (let i = 0; i < uniqueUrls.length; i++) {
+  const url = uniqueUrls[i];
+
+  console.log(`Visiting (${i + 1}/${uniqueUrls.length}): ${url}`);
+
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+  
+  await page.waitForSelector(".main-content", { timeout: 60000 });
+
+    const data = await page.evaluate(() => {
+
+        const extractList = (root) => {
+        const obj = {};
+        if (!root) return obj;
+
+        root.querySelectorAll("li").forEach(li => {
+            const key = li.querySelector("strong")?.innerText
+            .replace(":", "")
+            .trim();
+
+            const value = li.childNodes[1]?.textContent.trim() || "";
+            if (key) obj[key] = value;
+        });
+
+        return obj;
+        };
+
+        // =========================
+        // PROFILE
+        // =========================
+        const profileCard = document.querySelector(
+        ".card h5.card-title"
+        )?.closest(".card");
+
+        const profile = {
+        name: profileCard?.querySelector("h5.card-title")?.innerText.trim() || "",
+        ...extractList(profileCard)
+        };
+
+        // =========================
+        // ADDRESS
+        // =========================
+        const addressCard = Array.from(document.querySelectorAll(".card"))
+        .find(card =>
+            card.querySelector("h5.card-title")?.innerText.trim() === "Address"
+        );
+
+        const address = extractList(addressCard);
+
+        // =========================
+        // HEALTH ATTRIBUTES
+        // =========================
+        const healthCard = Array.from(document.querySelectorAll(".card"))
+        .find(card =>
+            card.querySelector("h5.card-title")?.innerText.trim() === "Health Attributes"
+        );
+
+        const health_attributes = extractList(healthCard);
+
+        return {
+        profile,
+        address,
+        health_attributes
+        };
+    });
+
+    result.push({
+        url,
+        data
+    });
+
+  // delay to avoid blocking
+  await new Promise((r) => setTimeout(r, 1500));
+}
+
+// --------------------
+// SAVE ALL DATA TO ONE JSON FILE
+// --------------------
+fs.writeFileSync("all_profiles.json", JSON.stringify(result, null, 2));
+
+console.log("Done! Saved all data in all_profiles.json");
+
+await browser.close();
+
