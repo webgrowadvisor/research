@@ -54,3 +54,31 @@ Route::get('/clear', function() {
     return "Cleared!";
 
 });
+
+Route::get('/storage', function() {
+    Artisan::call('storage:link');
+    return "storage link!";
+});
+
+Route::get('/optimize-clear', function () {
+
+    Artisan::call('optimize:clear');
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Application optimized & storage linked successfully.'
+    ]);
+});
+
+
+Route::get('/composer-install', function () {
+
+    // Composer install command
+    exec('composer install 2>&1', $output);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Composer install completed.',
+        'output'  => $output
+    ]);
+});
