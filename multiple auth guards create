@@ -1,0 +1,113 @@
+befor auth file set this
+
+->  confing/auth.php
+
+'guards' => [
+        'web' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+
+        'admin' => [
+            'driver' => 'session',
+            'provider' => 'admins',
+        ],
+
+        'seller' => [
+            'driver' => 'session',
+            'provider' => 'sellers',
+        ],
+
+        'dropservice' => [
+            'driver' => 'session',
+            'provider' => 'dropservices',
+        ],
+
+    ],
+
+
+
+'providers' => [
+        'users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\User::class,
+        ],
+
+        'admins' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Admin::class,
+        ],
+
+        'sellers' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Seller::class,
+        ],
+
+        'dropservices' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Dropservice::class,
+        ],
+    ],
+
+
+/// now using in this way on controller sing in time
+
+
+public function admin_check(Request $request)
+    {
+        // Validation
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+
+        $credentials = $request->only('email', 'password');
+        
+        if (Auth::guard('admin')->attempt($credentials)) {
+            // Login successful
+            return redirect()->route('admin.dashboard')->with('success_msg', value: 'Welcome '.Auth::guard('admin')->user()->name); // आप अपनी डैशबोर्ड रूट का नाम यहां दें
+        }
+        // Login failed
+        return back()->withErrors([
+            'email' => 'Invalid credentials.',
+        ])->withInput();
+    }
+
+
+    public function seller_check(Request $request)
+    {
+        // Validation
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+
+        $credentials = $request->only('email', 'password');
+
+        if (Auth::guard('seller')->attempt($credentials)) {
+            // Login successful
+            return redirect()->route('seller.dashboard')->with('success_msg', 'Welcome '.Auth::guard('seller')->user()->name); // आप अपनी डैशबोर्ड रूट का नाम यहां दें
+        }
+        // Login failed
+        
+        return back()->withErrors([
+            'email' => 'Invalid credentials.',
+        ])->withInput();
+    }
+
+
+
+
+     public function admin_logout(){
+        Auth::guard('admin')->logout();
+        return redirect()->route('home');
+    }
+
+    public function seller_logout(){
+        Auth::guard('seller')->logout();
+        return redirect()->route('home');
+    }
+
+
+
+
