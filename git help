@@ -18,6 +18,20 @@ cd mytest             # Clone किए गए folder में जाएं
 git status            # Repo की current स्थिति देखें
 git branch            # Current branch देखें
 
+# Agar naya GitHub repository set karna hai
+origin ko update kar dijiye:
+git remote set-url origin https://github.com/digitalsamer/telemedcineWithMemership.git
+Phir verify karein:
+git remote -v
+Aur push karein:
+git branch -M main
+git push -u origin main
+
+# Ya purana origin remove karke dubara add karein
+git remote remove origin
+git remote add origin https://github.com/digitalsamer/telemedcineWithMemership.git
+Phir:
+git push -u origin main
 
 
 1️⃣ Merge the Whole Branch
