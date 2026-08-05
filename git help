@@ -40,3 +40,35 @@ git checkout main
 
 # Merge the other branch into it
 git merge feature-branch
+
+
+/// Abhi bhi purani commit history branch me maujood hai. Chaliye usse completely remove karte hain. //
+
+PowerShell me ye commands exactly chalao:
+git log --oneline --all
+
+Mujhe lag raha hai output me kuch aisa hoga:
+d698e91 Remove OpenAI API key and use env variable
+8231755 Initial commit
+
+Ab hume secret wali commit ko history se hata kar nayi clean branch banani hai.
+
+Step 1: Orphan branch banao
+git checkout --orphan clean-main
+
+Step 2: Saari files stage karo
+git add .
+
+Step 3: Naya clean commit banao
+git commit -m "Initial clean commit"
+
+Step 4: Purani main branch delete karo
+git branch -D main
+
+Step 5: Current branch ko main naam do
+git branch -m main
+
+Step 6: Force push karo
+git push -u origin main --force
+
+
