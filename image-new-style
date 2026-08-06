@@ -1,3 +1,8 @@
+// we need install image package in laravel with composer and include this where using image method
+
+use Intervention\Image\ImageManager;
+use Illuminate\Support\Facades\Storage;
+
 this is uploading time
 
 $imagePath = uploadWebp($request->variant_images[$i], 'variant_images');
@@ -5,6 +10,9 @@ $product->variants()->create([
                 'image'   => $imagePath['original'] ?? '',
                 'webp'    => $imagePath['webp'] ?? '',
             ]);
+
+
+helper function 
 
 function uploadWebp($file, $folder)
     {
@@ -41,9 +49,12 @@ function uploadWebp($file, $folder)
     }
 ------------------------
 
-this is view time
+// this is view time
 
 {!! variantImage($variant->webp, $variant->image, 60, 60) !!}
+
+
+// in helper funtion 
 
 function variantImage($webpPath = null, $originalPath = null, $width = 60, $height = 60, $fallback = 'no-image.png')
     {
